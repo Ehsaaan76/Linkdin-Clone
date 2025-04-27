@@ -6,8 +6,14 @@ dotenv.config();
 const Token = process.env.MAILTRAP_TOKEN;
 
 export const mailtrapClient = new MailtrapClient({
-    Token: MAILTRAP_TOKEN
+    token: Token,
 })
+
+export const recipient = [
+    {
+      email: "emehsaan.76@gmail.com",
+    }
+  ];
 
 export const sender = {
     email: process.env.EMAIL_FROM,

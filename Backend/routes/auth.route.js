@@ -7,4 +7,6 @@ router.post("/signup", Signup)
 router.post("/login", Login);
 router.post("/logout", Logout)
 
+router.get("/me", protectRoute, getCurrentUser)
+
 export default router
