@@ -134,7 +134,7 @@ export const Login = async (req, res) => {
             maxAge: 3 * 24 * 60 * 60 * 1000,
             sameSite: "strict",
             secure: process.env.NODE_ENV === "production",
-        })
+        });
     
         res.json({ message: "Logged in successfully"})
     
@@ -148,4 +148,13 @@ export const Logout = (req, res) => {
     res.json({
         message: "Logged Out Successfully"
     });
+}
+
+export const getCurrentUser = (req, res) => {
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.log("Error in getCurrentUser: ", error);
+        res.status(500).json({ message: "Internal server error"});
+    }
 }
