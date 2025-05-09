@@ -122,7 +122,6 @@ export const getConnectionRequests = async (req, res) => {
     }).populate("sender", "name username profilePicture, headline connections");
 
     res.json(requests);
-
   } catch (error) {
     console.log("Error in getConnectionRequests: ", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -130,68 +129,66 @@ export const getConnectionRequests = async (req, res) => {
 };
 
 export const getUserConnections = async (req, res) => {
-    try {
-        const userId = req.user._id;
+  try {
+    const userId = req.user._id;
 
-        const user = await User.findById(userId)
-        .populate("connections", "name username profilePicture headline connections");
+    const user = await User.findById(userId).populate(
+      "connections",
+      "name username profilePicture headline connections"
+    );
 
-        res.json(user.connections);
-
-    } catch (error) {
-        console.error("Error in getUserConnections controller:", error);
-		res.status(500).json({ message: "Internal server error" });
-    }
+    res.json(user.connections);
+  } catch (error) {
+    console.error("Error in getUserConnections controller:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const removeConnection = async (req, res) => {
-    try {
-        const { myId } = req.params._id;
-        const userId = req.params;
+  try {
+    const { myId } = req.params._id;
+    const userId = req.params;
 
-        await User.findByIdAndUpdate( myId, { $pull: { connections: userId }});
-        await User.findByIdAndUpdate( userId, { $pull: { connections: myId }});
+    await User.findByIdAndUpdate(myId, { $pull: { connections: userId } });
+    await User.findByIdAndUpdate(userId, { $pull: { connections: myId } });
 
-        res.json({ message: "Connection removed successfully" });
-
-    } catch (error) {
-        console.log("Error in removeConnection: ", error );
-        return res.status(500).json({ message: "Internal server error" });
-    }
+    res.json({ message: "Connection removed successfully" });
+  } catch (error) {
+    console.log("Error in removeConnection: ", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const getConnectionStatus = async (req, res) => {
-    try {
-        const targetUserId = req.params.userId;
-        const currentUserId = req.user._id;
+  try {
+    const targetUserId = req.params.userId;
+    const currentUserId = req.user._id;
 
-        const currentUser = req.user;
+    const currentUser = req.user;
 
-        if(currentUser.connections.includes(targetUserId)){
-            return res.json({ message: "Connected" });
-        }
-
-        const pendingRequest = await ConnectionRequest.findOne(
-            {
-                $or: [
-                    {sender: currentUserId, recipient: targetUserId},
-                    {sender: targetUserId, recipient: currentUserId},
-                ],
-                status: "Pending",
-            }
-        );
-
-        if(pendingRequest){
-            if(pendingRequest.sender.toString() === currentUserId.toString()){
-                return res.json({ message: "Pending"})
-            }else{
-                return res.json({ status: "received", requestId: pendingRequest._id});
-            }
-        }
-
-        res.json({ status: "not_connected"})
-    } catch (error) {
-        console.log("Error in getConnectionStatus: ", error);
-        res.status(500).json({ message: "Internal server error" });
+    if (currentUser.connections.includes(targetUserId)) {
+      return res.json({ message: "Connected" });
     }
+
+    const pendingRequest = await ConnectionRequest.findOne({
+      $or: [
+        { sender: currentUserId, recipient: targetUserId },
+        { sender: targetUserId, recipient: currentUserId },
+      ],
+      status: "Pending",
+    });
+
+    if (pendingRequest) {
+      if (pendingRequest.sender.toString() === currentUserId.toString()) {
+        return res.json({ message: "Pending" });
+      } else {
+        return res.json({ status: "received", requestId: pendingRequest._id });
+      }
+    }
+
+    res.json({ status: "not_connected" });
+  } catch (error) {
+    console.log("Error in getConnectionStatus: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
