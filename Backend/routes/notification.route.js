@@ -4,7 +4,7 @@ import { deleteNotification, getUserNotifications, markNotificationAsRead } from
 
 const router = express.Router();
 
-router.post('/', protectRoute, getUserNotifications)
+router.get('/', protectRoute, getUserNotifications)
 router.put('/:id/read', protectRoute, markNotificationAsRead)
 router.delete('/:id', protectRoute, deleteNotification)
 
