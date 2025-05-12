@@ -26,8 +26,6 @@ function App() {
 
   if (isLoading) return null;
 
-  console.log("Auth User: ", authUser);
-
   return (
     <Layout>
       <Routes>

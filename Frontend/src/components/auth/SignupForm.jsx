@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "./../../config/axios";
 import {Loader} from "lucide-react";
 
 const SignUpForm = () => {
+
+  const queryClient = useQueryClient();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -17,6 +20,7 @@ const SignUpForm = () => {
     },
     onSuccess: () => {
       toast.success("Account created successfully");
+      queryClient.invalidateQueries({ queryKey: ["authUser"]},)
     },
     onError: (error) => {
 	  	toast.error(error.response.data.message || "We have an error: ");
