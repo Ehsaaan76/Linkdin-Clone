@@ -2,13 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React, { useState } from 'react'
 import { axiosInstance } from '../config/axios';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Loader, MessageCircle, Send, Share2, ThumbsUp, Trash2 } from 'lucide-react';
 import PostAction from './PostAction';
 import { formatDistanceToNow } from "date-fns"
 
 const Post = ({post}) => {
 
+    const { postId } = useParams();
     const queryClient = useQueryClient();
 
     const { data: authUser, isLoading } = useQuery({
@@ -25,6 +26,8 @@ const Post = ({post}) => {
       }
     },
   });
+
+  if (isLoading || !authUser) return null;
 
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
@@ -64,6 +67,8 @@ const Post = ({post}) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ mutate: ["posts"] });
+	  queryClient.invalidateQueries({ queryKey: ["post", postId] });
+
     },
     onError: (error) => {
       toast.error("Something went wrong")
@@ -83,7 +88,7 @@ const Post = ({post}) => {
   const handleAddComment = async (e) => {
 		e.preventDefault();
 		if (newComment.trim()) {
-			createComment(newComment);
+			createCommentMutation(newComment);
 			setNewComment("");
 			setComments([
 				...comments,
@@ -154,7 +159,7 @@ return (
 				<div className='px-4 pb-4'>
 					<div className='mb-4 max-h-60 overflow-y-auto'>
 						{comments.map((comment) => (
-							<div key={comment._id} className='mb-2 bg-base-100 p-2 rounded flex items-start'>
+							<div key={comment._id} className='mb-2 bg-gray-100 p-2 rounded flex items-start'>
 								<img
 									src={comment.user.profilePicture || "/avatar.png"}
 									alt={comment.user.name}

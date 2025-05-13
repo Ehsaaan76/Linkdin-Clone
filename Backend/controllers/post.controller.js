@@ -1,7 +1,4 @@
 import { recipient } from "../config/Mailtrap.js";
-import {
-    sendCommentNotificationEmail
-} from "../emails/emailHandlers.js";
 import Post from "../models/post.model.js";
 import cloudinary from './../config/cloudinary.js';
 import Notification from './../models/notification.model.js';
@@ -149,16 +146,6 @@ export const createComment = async (req, res) => {
             await newNotification.save()
         }
 
-        try {
-            const postUrl = process.env.CLIENT_URL + "/post/" + postId;
-            await sendCommentNotificationEmail(post.author.email, post.author.name, req.user.name, postUrl, content);
-        } catch (error) {
-            console.log("Error in Comments Notification: ", error);
-            res.status(500).json({
-                message: "Internal Server error"
-            })
-        }
-
         res.status(200).json(post)
 
     } catch (error) {
@@ -173,7 +160,7 @@ export const likePost = async (req, res) => {
     try {
         const postId = req.params.id;
         const post = await Post.findById(postId);
-        const userId = res.user._id;
+        const userId = req.user._id;
 
         if(post.likes.includes(userId)){
             // Disliking The Post
@@ -188,8 +175,8 @@ export const likePost = async (req, res) => {
                     recipient: post.author,
                     type: "like",
                     relatedUser: userId,
-                    relatedPost: postId
-                })
+                    relatedPost: postId,
+                });
                 await newNotification.save()
             }
         }
@@ -198,7 +185,8 @@ export const likePost = async (req, res) => {
         res.status(200).json(post)
 
     } catch (error) {
-        console.log("Error in likePost: ", error);
+        console.log("Error in likePost: ", error)
+        ;
         res.status(500).json({ message: "Internal Server error "})
     }
 }
