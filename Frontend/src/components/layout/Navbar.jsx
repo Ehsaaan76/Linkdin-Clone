@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "./../../config/axios";
 import { Link } from 'react-router-dom';
 import { Bell, Home, LogOut, User, Users } from "lucide-react";
-import toast from "react-hot-toast";
 
 function Navbar() {
 
@@ -24,7 +23,7 @@ function Navbar() {
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
-    queryFn: async () => await axiosInstance.get("/notifications"),
+    queryFn: async () => axiosInstance.get("/notifications"),
     enabled: !!authUser,
   });
 
@@ -37,10 +36,8 @@ function Navbar() {
   const { mutate: logout } = useMutation({
     mutationFn: () => axiosInstance.post("/auth/logout"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["logout" ]})
-      toast.success("Logged out successfully")
+      queryClient.invalidateQueries({ queryKey: ["authUser" ]})
     },
-    onError: () => toast.error("Something went wrong"),
   })
 
 const unreadNotificationCount = notifications?.data?.filter(notif => !notif.read).length;

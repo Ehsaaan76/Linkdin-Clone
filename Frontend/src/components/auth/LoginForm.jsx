@@ -7,14 +7,12 @@ import { Loader } from 'lucide-react';
 function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const queryClient = useQueryClient();
 
   const { mutate: loginMutation, isLoading } = useMutation({
     mutationFn: (data) => axiosInstance.post("/auth/login", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["authuser"] });
-      toast.success("Login successful");
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
     onError: (error) => {
       toast.error(error.response.data.message || "Something went wrong");
@@ -46,10 +44,10 @@ function LoginForm() {
         required
       />
       <button type="submit" className="w-full btn btn-primary">
-        {isLoading ? <Loader className="size-5 animate-spin" /> : "Sign in" }
+        {isLoading ? <Loader className="size-5 animate-spin" /> : "Login" }
       </button>
     </form>
   );
-}
+};
 
 export default LoginForm;

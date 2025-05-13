@@ -51,7 +51,7 @@ export const createPost = async (req, res) => {
         } else {
             newPost = new Post({
                 author: req.user._id,
-                content
+                content,
             })
         }
 
