@@ -23,6 +23,7 @@ const PostCreation = ({user}) => {
         onSuccess: () => {
             resetForm();
             toast.success("Post created successfully");
+			queryClient.invalidateQueries({ queryKey: ["posts"] })
         },
         onError: (error) => {
             toast.error(error.response.data.message || "Something went wrong");
@@ -34,7 +35,7 @@ const PostCreation = ({user}) => {
             const postData = { content };
             if(image) postData.image = await readFileAsDataURL(image);
 
-            PostCreationMutation( postData )
+            PostCreationMutation( postData );
 
         } catch (error) {
             console.log("Error in postCreationMutation: ", error);
