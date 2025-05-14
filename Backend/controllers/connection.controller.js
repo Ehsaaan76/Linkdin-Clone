@@ -12,11 +12,11 @@ export const sendConnectionRequest = async (req, res) => {
         .json({ message: "You can't send a request to yourself" });
     }
 
-    if (req.user.connections.include(userId)) {
+    if (req.user.connections.includes(userId)) {
       return res.status(400).json({ message: "You are already connected" });
     }
 
-    const existingRequest = Notification.findOne({
+    const existingRequest = await ConnectionRequest.findOne({
       sender: senderId,
       recipient: userId,
       status: "Pending",
@@ -47,7 +47,7 @@ export const acceptConnectionRequest = async (req, res) => {
     const userId = req.user._id;
 
     const request = await ConnectionRequest.findById(requestId)
-      .populate("sender", "name username profilePicture")
+      .populate("sender", "name email username")
       .populate("recipient", "name username");
 
     if (!request) {
@@ -76,6 +76,14 @@ export const acceptConnectionRequest = async (req, res) => {
       $addToSet: { connections: request.sender._id },
     });
 
+    const notification = new Notification({
+			recipient: request.sender._id,
+			type: "connectionAccepted",
+			relatedUser: userId,
+		});
+
+    await Notification.save();
+
     res.status(200).json({ message: "Connection request accepted" });
   } catch (error) {
     console.log("Error in acceptConnectionRequest: ", error);
@@ -102,7 +110,7 @@ export const rejectConnectionRequest = async (req, res) => {
         .json({ message: "This request has already been processed" });
     }
 
-    request.status = "Accepted";
+    request.status = "Rejected";
     await request.save();
 
     res.json({ message: "Connection request rejected" });
@@ -146,8 +154,8 @@ export const getUserConnections = async (req, res) => {
 
 export const removeConnection = async (req, res) => {
   try {
-    const { myId } = req.params._id;
-    const userId = req.params;
+    const myId = req.params._id;
+    const { userId } = req.params;
 
     await User.findByIdAndUpdate(myId, { $pull: { connections: userId } });
     await User.findByIdAndUpdate(userId, { $pull: { connections: myId } });
@@ -167,7 +175,7 @@ export const getConnectionStatus = async (req, res) => {
     const currentUser = req.user;
 
     if (currentUser.connections.includes(targetUserId)) {
-      return res.json({ message: "Connected" });
+      return res.json({ status: "connected" });
     }
 
     const pendingRequest = await ConnectionRequest.findOne({
@@ -180,7 +188,7 @@ export const getConnectionStatus = async (req, res) => {
 
     if (pendingRequest) {
       if (pendingRequest.sender.toString() === currentUserId.toString()) {
-        return res.json({ message: "Pending" });
+        return res.json({ status: "Pending" });
       } else {
         return res.json({ status: "received", requestId: pendingRequest._id });
       }

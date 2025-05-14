@@ -6,54 +6,47 @@ import { Link } from 'react-router-dom';
 import { Check, Clock, UserCheck, UserPlus, X } from 'lucide-react';
 
 const RecommendedUser = ({ user }) => {
+	const queryClient = useQueryClient();
 
-  const queryClient = useQueryClient();
-  
-  const { data: connectionStatus, isLoading} = useQuery({
-    queryKey: ["connectionStatus", user._id],
-    queryFn: () => axiosInstance.get(`/connections/status/${user._id}`),
-  });
+	const { data: connectionStatus, isLoading } = useQuery({
+		queryKey: ["connectionStatus", user._id],
+		queryFn: () => axiosInstance.get(`/connections/status/${user._id}`),
+	});
 
-  const { mutate: sendConnectionMutation } = useMutation({
-    mutationFn: (userId) => {
-      axiosInstance.post(`/connections/requests/${userId}`).then(res => res.data)
-    },
-    onSuccess: () => {
-      toast.success("Connection request sent");
-      queryClient.invalidateQueries({queryKey: ["connectionStatus", user._id]})
-    },
-    onError: () => {
-      toast.error(error.response?.data?.error || "Something went wrong")
-    },
-  })
+	const { mutate: sendConnectionRequest } = useMutation({
+		mutationFn: (userId) => axiosInstance.post(`/connections/request/${userId}`),
+		onSuccess: () => {
+			toast.success("Connection request sent successfully");
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
+		},
+		onError: (error) => {
+			toast.error(error.response?.data?.error || "An error occurred");
+		},
+	});
 
-  const { mutate: acceptConnectionMutation} = useMutation({
-    mutationFn: (requestId) => {
-      axiosInstance.put(`/connections/accept/${requestId}`)
-    },
-    onSuccess: () => {
-      toast.success("Connection accepted");
-      queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id]})
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.error || "Something went wrong")
-    },
-  });
+	const { mutate: acceptRequest } = useMutation({
+		mutationFn: (requestId) => axiosInstance.put(`/connections/accept/${requestId}`),
+		onSuccess: () => {
+			toast.success("Connection request accepted");
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
+		},
+		onError: (error) => {
+			toast.error(error.response?.data?.error || "An error occurred");
+		},
+	});
 
-  const { mutate: rejectConnectionMutation } = useMutation({
-    mutationFn: (requestId) => {
-      axiosInstance.put(`/connections/reject/${requestId}`);
-    },
-    onSuccess: () => {
-      toast.success("Connection rejected");
-      queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id]})
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.error || "Something went wrong");
-    },
-  })
+	const { mutate: rejectRequest } = useMutation({
+		mutationFn: (requestId) => axiosInstance.put(`/connections/reject/${requestId}`),
+		onSuccess: () => {
+			toast.success("Connection request rejected");
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
+		},
+		onError: (error) => {
+			toast.error(error.response?.data?.error || "An error occurred");
+		},
+	});
 
-  const renderButton = () => {
+	const renderButton = () => {
 		if (isLoading) {
 			return (
 				<button className='px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-500' disabled>
@@ -77,20 +70,20 @@ const RecommendedUser = ({ user }) => {
 				return (
 					<div className='flex gap-2 justify-center'>
 						<button
-							onClick={() => acceptConnectionMutation(connectionStatus.data.requestId)}
+							onClick={() => acceptRequest(connectionStatus.data.requestId)}
 							className={`rounded-full p-1 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white`}
 						>
 							<Check size={16} />
 						</button>
 						<button
-							onClick={() => rejectConnectionMutation(connectionStatus.data.requestId)}
+							onClick={() => rejectRequest(connectionStatus.data.requestId)}
 							className={`rounded-full p-1 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white`}
 						>
 							<X size={16} />
 						</button>
 					</div>
 				);
-			case "Accepted":
+			case "connected":
 				return (
 					<button
 						className='px-3 py-1 rounded-full text-sm bg-green-500 text-white flex items-center'
@@ -115,7 +108,7 @@ const RecommendedUser = ({ user }) => {
 
 	const handleConnect = () => {
 		if (connectionStatus?.data?.status === "not_connected") {
-			sendConnectionMutation(user._id);
+			sendConnectionRequest(user._id);
 		}
 	};
 
