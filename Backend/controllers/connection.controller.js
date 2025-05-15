@@ -1,5 +1,6 @@
 import ConnectionRequest from "../models/connectionRequest.model.js";
 import User from "../models/user.model.js";
+import Notification from "../models/notification.model.js";
 
 export const sendConnectionRequest = async (req, res) => {
   try {
@@ -54,7 +55,7 @@ export const acceptConnectionRequest = async (req, res) => {
       return res.status(404).json({ message: "Connection request not found" });
     }
 
-    if (request.recipient._id.toString() === userId.toString()) {
+    if (request.recipient._id.toString() !== userId.toString()) {
       return res
         .status(403)
         .json({ message: "Not authorized to accept this request" });
@@ -82,7 +83,7 @@ export const acceptConnectionRequest = async (req, res) => {
 			relatedUser: userId,
 		});
 
-    await Notification.save();
+    await notification.save();
 
     res.status(200).json({ message: "Connection request accepted" });
   } catch (error) {
