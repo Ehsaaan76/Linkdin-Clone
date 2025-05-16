@@ -3,6 +3,9 @@ import React from "react";
 import { Home, UserPlus, Bell } from "lucide-react";
 
 export default function Sidebar({ user }) {
+
+	if (!user) return null;
+	
 	return (
 		<div className='bg-white rounded-lg shadow'>
 			<div className='p-4 text-center'>
